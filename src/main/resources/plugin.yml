@@ -1,0 +1,6 @@
+name: Blockhunt
+version: ${project.version}
+main: gold.tabs.blockhunt.Blockhunt
+api-version: 1.16
+authors: [ tabsg, wdhg ]
+description: A game where you have to hunt for blocks
