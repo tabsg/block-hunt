@@ -4,3 +4,7 @@ main: gold.tabs.blockhunt.Blockhunt
 api-version: 1.16
 authors: [ tabsg, wdhg ]
 description: A game where you have to hunt for blocks
+commands:
+  blockhunt:
+    description: play blockhunt!
+    usage: /blockhunt
