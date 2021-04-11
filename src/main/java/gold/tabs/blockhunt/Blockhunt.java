@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -20,6 +21,10 @@ public final class Blockhunt extends JavaPlugin {
   // private static final List<Material> blockChoices = Arrays.asList(Material.values());
   private static final List<Material> blockChoices =
       new ArrayList<>(Arrays.asList(Material.GRASS_BLOCK, Material.STONE, Material.DIRT));
+
+  private boolean playing = false;
+
+  private BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 
   @Override
   public void onEnable() {
@@ -33,24 +38,64 @@ public final class Blockhunt extends JavaPlugin {
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-    if (command.getName().equalsIgnoreCase("blockhunt")) {
-      play();
+    if (command.getName().equalsIgnoreCase("blockhunt") && !playing) {
+      playGame();
       return true;
     }
     return false;
   }
 
-  private void play() {
-    // get players
-    // generate blocks
-    // tell players their blocks
-    // start a timer
-    // countdown last 5 seconds
-    // at end of timer, check blocks
-    // allocate points
+  private void playGame() {
+    playing = true;
     List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
     System.out.println(players);
+    playRound(players, 1);
+  }
+
+  private void playRound(List<Player> players, int roundNumber) {
     Map<Player, Material> playerBlockMap = generateBlocks(players);
+    playerBlockMap.forEach(
+        (player, block) -> {
+          player.sendTitle(
+              block.name(),
+              "You have " + roundLength(roundNumber) + " seconds to stand on your block!",
+              10,
+              100,
+              10);
+        });
+    endTimer(playerBlockMap, roundNumber);
+  }
+
+  private int roundLength(int roundNumber) {
+    if (roundNumber <= 5) {
+      return 360 - (roundNumber * 60);
+    } else {
+      return 30;
+    }
+  }
+
+  private void endTimer(Map<Player, Material> playerBlockMap, int roundNumber) {
+    scheduler.scheduleSyncDelayedTask(
+            this,
+            new Runnable() {
+              public void run() {
+                endRound(playerBlockMap, roundNumber);
+              }
+            },
+            roundLength(roundNumber) * 20L);
+  }
+
+  private void endRound(Map<Player, Material> playerBlockMap, int roundNumber) {
+    playerBlockMap.forEach(
+        (player, block) -> {
+          if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().equals(block)) {
+            player.sendMessage(
+                "Round successful!, You won " + roundNumber + " levels");
+            player.giveExpLevels(roundNumber);
+          } else {
+            player.sendMessage("Round unsuccessful, Try harder next time :/");
+          }
+        });
   }
 
   private Map<Player, Material> generateBlocks(List<Player> players) {
