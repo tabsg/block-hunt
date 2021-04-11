@@ -68,12 +68,8 @@ public final class Blockhunt extends JavaPlugin {
     endTimer(playerBlockMap, roundNumber);
   }
 
-  private int roundLength(int roundNumber) {
-    if (roundNumber <= 5) {
-      return 360 - (roundNumber * 60);
-    } else {
-      return 30;
-    }
+  private static int roundLength(int roundNumber) {
+      return 330 - (roundNumber * 30);
   }
 
   private void endTimer(Map<Player, Material> playerBlockMap, int roundNumber) {
