@@ -20,11 +20,13 @@ public final class Blockhunt extends JavaPlugin {
 
   // private static final List<Material> blockChoices = Arrays.asList(Material.values());
   private static final List<Material> blockChoices =
-      new ArrayList<>(Arrays.asList(Material.GRASS_BLOCK, Material.STONE, Material.DIRT));
+      new ArrayList<>(Arrays.asList(Material.GRASS_BLOCK, Material.STONE, Material.DIRT, Material.SAND, Material.GRAVEL, Material.DIORITE, Material.ANDESITE, Material.GRANITE));
 
   private boolean playing = false;
-
-  private BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+  private int roundNumber;
+  private List<Player> players;
+  private final BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+  private Map<Player, Material> playerBlockMap;
 
   @Override
   public void onEnable() {
@@ -100,7 +102,7 @@ public final class Blockhunt extends JavaPlugin {
 
   private Map<Player, Material> generateBlocks(List<Player> players) {
     Random random = new Random();
-    Map<Player, Material> playerBlockMap = new HashMap<>();
+    playerBlockMap = new HashMap<>();
     for (Player player : players) {
       int index = random.nextInt(blockChoices.size());
       playerBlockMap.put(player, blockChoices.get(index));
