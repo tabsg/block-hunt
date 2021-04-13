@@ -3,11 +3,10 @@ package gold.tabs.blockhunt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
+import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -15,23 +14,24 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
 
 public final class Blockhunt extends JavaPlugin {
 
-  // private static final List<Material> blockChoices = Arrays.asList(Material.values());
-  private static final List<Material> blockChoices =
-      new ArrayList<>(Arrays.asList(Material.GRASS_BLOCK, Material.STONE, Material.DIRT, Material.SAND, Material.GRAVEL, Material.DIORITE, Material.ANDESITE, Material.GRANITE));
-
+  private static List<Material> blockChoices;
   private boolean playing = false;
   private int roundNumber;
   private List<Player> players;
   private final BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
   private Map<Player, Material> playerBlockMap;
 
-  @Override
-  public void onEnable() {
-    System.out.println(blockChoices);
+  public Blockhunt() {
+    blockChoices = Arrays.asList(Material.values());
+    blockChoices = blockChoices.stream().filter(Material::isSolid).collect(Collectors.toList());
   }
+
+  @Override
+  public void onEnable() {}
 
   @Override
   public void onDisable() {
@@ -49,13 +49,13 @@ public final class Blockhunt extends JavaPlugin {
 
   private void playGame() {
     playing = true;
-    List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-    System.out.println(players);
-    playRound(players, 1);
+    roundNumber = 1;
+    players = new ArrayList<>(Bukkit.getOnlinePlayers());
+    playRound();
   }
 
-  private void playRound(List<Player> players, int roundNumber) {
-    Map<Player, Material> playerBlockMap = generateBlocks(players);
+  private void playRound() {
+    playerBlockMap = generateBlocks();
     playerBlockMap.forEach(
         (player, block) -> {
           player.sendTitle(
@@ -65,38 +65,45 @@ public final class Blockhunt extends JavaPlugin {
               100,
               10);
         });
-    endTimer(playerBlockMap, roundNumber);
+    awaitEndOfRound();
   }
 
   private static int roundLength(int roundNumber) {
     return 330 - (roundNumber * 30);
   }
 
-  private void endTimer(Map<Player, Material> playerBlockMap, int roundNumber) {
+  private void awaitEndOfRound() {
     scheduler.scheduleSyncDelayedTask(
-            this,
-            new Runnable() {
-              public void run() {
-                endRound(playerBlockMap, roundNumber);
-              }
-            },
-            roundLength(roundNumber) * 20L);
+        this,
+        new Runnable() {
+          public void run() {
+            endRound();
+          }
+        },
+        roundLength(roundNumber) * 20L);
   }
 
-  private void endRound(Map<Player, Material> playerBlockMap, int roundNumber) {
+  private void endRound() {
     playerBlockMap.forEach(
         (player, block) -> {
           if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().equals(block)) {
-            player.sendMessage(
-                "Round successful!, You won " + roundNumber + " levels");
+            player.sendMessage("Round successful!, You won " + roundNumber + " levels");
             player.giveExpLevels(roundNumber);
           } else {
             player.sendMessage("Round unsuccessful, Try harder next time :/");
           }
         });
+
+    roundNumber++;
+
+    if (roundNumber < 10) {
+      playRound();
+    } else {
+      playing = false;
+    }
   }
 
-  private Map<Player, Material> generateBlocks(List<Player> players) {
+  private Map<Player, Material> generateBlocks() {
     Random random = new Random();
     playerBlockMap = new HashMap<>();
     for (Player player : players) {
