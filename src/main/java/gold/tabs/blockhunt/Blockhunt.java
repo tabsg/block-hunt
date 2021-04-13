@@ -27,6 +27,8 @@ public final class Blockhunt extends JavaPlugin {
   private final Map<Player, Integer> scores = new HashMap<>();
   private int countdownID;
   private final List<Material> overworldBlocks = OverworldBlocks.blockList;
+  private int rounds;
+
 
   public Blockhunt() {
     blockChoices = Arrays.asList(Material.values());
@@ -41,7 +43,12 @@ public final class Blockhunt extends JavaPlugin {
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-    if (command.getName().equalsIgnoreCase("blockhunt") && !playing) {
+    if (command.getName().equalsIgnoreCase("blockhunt") && !playing && args.length == 1) {
+      try {
+        rounds = Integer.parseInt(args[0]);
+      } catch (NumberFormatException e) {
+        return false;
+      }
       playGame();
       return true;
     }
@@ -69,7 +76,7 @@ public final class Blockhunt extends JavaPlugin {
               10,
               100,
               10);
-          player.sendMessage("search for " + blockName + "!");
+          player.sendMessage("Search for " + blockName + "!");
         });
     awaitEndOfRound();
   }
@@ -107,10 +114,10 @@ public final class Blockhunt extends JavaPlugin {
     showLeaderboard();
     roundNumber++;
 
-    if (roundNumber < 10) {
+    if (roundNumber < rounds) {
       playRound();
     } else {
-      playing = false;
+      gameOver();
     }
   }
 
@@ -128,7 +135,8 @@ public final class Blockhunt extends JavaPlugin {
   }
 
   private static int roundLength(int roundNumber) {
-    return 330 - (roundNumber * 30);
+    return 5;
+    // return 330 - (roundNumber * 30);
   }
 
   private void generateBlocks() {
@@ -140,20 +148,34 @@ public final class Blockhunt extends JavaPlugin {
     }
   }
 
-  private void showLeaderboard() {
+  private List<Entry<Player, Integer>> getLeaderboard() {
     List<Entry<Player, Integer>> scoreList = new ArrayList<>(scores.entrySet());
     scoreList.sort(Entry.comparingByValue());
-    List<Entry<Player, Integer>> leaderboard =
-        scoreList.stream().limit(5).collect(Collectors.toList());
+    return scoreList.stream().limit(5).collect(Collectors.toList());
+  }
+
+  private void showLeaderboard() {
+    List<Entry<Player, Integer>> leaderboard = getLeaderboard();
+
 
     for (Player player : players) {
       player.sendMessage("\nLeaderboard:");
       for (int i = 0; i < leaderboard.size(); i++) {
         Entry<Player, Integer> entry = leaderboard.get(i);
-        player.sendMessage(
-            "  " + i + ": " + entry.getKey().getName() + " [" + entry.getValue() + " points]");
+        player.sendMessage("  " + i + ": " + entry.getKey().getDisplayName() + " [" + entry.getValue() + " points]");
       }
       player.sendMessage("");
     }
   }
+
+  private void gameOver() {
+    Player winner = getLeaderboard().get(0).getKey();
+
+    for (Player player : players) {
+      player.sendTitle("Game Over", winner.getDisplayName() + " wins!", 10, 100, 10);
+    }
+
+    playing = false;
+  }
+
 }
