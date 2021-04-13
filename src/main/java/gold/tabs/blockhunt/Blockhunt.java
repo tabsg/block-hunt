@@ -60,12 +60,14 @@ public final class Blockhunt extends JavaPlugin {
     generateBlocks();
     playerBlockMap.forEach(
         (player, block) -> {
+          String blockName = WordUtils.capitalizeFully(block.toString().replace("_", " ").toLowerCase());
           player.sendTitle(
-              WordUtils.capitalizeFully(block.toString().replace("_", " ").toLowerCase()),
+              blockName,
               "You have " + roundLength(roundNumber) + " seconds to stand on your block!",
               10,
               100,
               10);
+          player.sendMessage("search for " + blockName + "!");
         });
     awaitEndOfRound();
   }
