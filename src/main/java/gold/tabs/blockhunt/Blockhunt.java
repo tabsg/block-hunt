@@ -1,12 +1,5 @@
 package gold.tabs.blockhunt;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.stream.Collectors;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -17,6 +10,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
 public final class Blockhunt extends JavaPlugin {
 
   private static List<Material> blockChoices;
@@ -25,6 +22,7 @@ public final class Blockhunt extends JavaPlugin {
   private List<Player> players;
   private final BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
   private Map<Player, Material> playerBlockMap;
+  private final Map<Player, Integer> scores = new HashMap<>();
   private int countdownID;
 
   public Blockhunt() {
@@ -33,7 +31,8 @@ public final class Blockhunt extends JavaPlugin {
   }
 
   @Override
-  public void onEnable() {}
+  public void onEnable() {
+  }
 
   @Override
   public void onDisable() {
@@ -53,6 +52,8 @@ public final class Blockhunt extends JavaPlugin {
     playing = true;
     roundNumber = 1;
     players = new ArrayList<>(Bukkit.getOnlinePlayers());
+    scores.clear();
+    players.forEach(player -> scores.put(player, 0));
     playRound();
   }
 
@@ -105,10 +106,13 @@ public final class Blockhunt extends JavaPlugin {
           if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().equals(block)) {
             player.sendMessage("Round successful!, You won " + roundNumber + " levels");
             player.giveExpLevels(roundNumber);
+            scores.put(player, scores.get(player) + roundNumber);
           } else {
             player.sendMessage("Round unsuccessful, Try harder next time :/");
           }
         });
+
+    showLeaderboard();
 
     roundNumber++;
 
@@ -133,6 +137,19 @@ public final class Blockhunt extends JavaPlugin {
     return playerBlockMap;
   }
 
+  private void showLeaderboard() {
+    List<Entry<Player, Integer>> scoreList = new ArrayList<>(scores.entrySet());
+    scoreList.sort(Entry.comparingByValue());
+    List<Entry<Player, Integer>> leaderboard = scoreList.stream().limit(5).collect(Collectors.toList());
 
+    for (Player player : players) {
+      player.sendMessage("\nLeaderboard:");
+      for (int i = 0; i < leaderboard.size(); i++) {
+        Entry<Player, Integer> entry = leaderboard.get(i);
+        player.sendMessage("  " + i + ": " + entry.getKey().getName() + " [" + entry.getValue() + " points]");
+      }
+      player.sendMessage("");
+    }
+  }
 
 }
