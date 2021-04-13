@@ -73,7 +73,7 @@ public final class Blockhunt extends JavaPlugin {
               10,
               100,
               10);
-          player.sendMessage("search for " + blockName + "!");
+          player.sendMessage("Search for " + blockName + "!");
         });
     awaitEndOfRound();
   }
