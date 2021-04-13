@@ -1,6 +1,7 @@
 package gold.tabs.blockhunt;
 
 import static gold.tabs.blockhunt.OverworldBlocks.*;
+import static java.lang.Math.max;
 
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
@@ -26,14 +27,11 @@ public final class Blockhunt extends JavaPlugin {
   private final Map<Player, Material> playerBlockMap = new HashMap<>();
   private final Map<Player, Integer> scores = new HashMap<>();
   private int countdownID;
-  private final List<Material> overworldBlocks = OverworldBlocks.blockList;
   private int rounds;
 
-
-  public Blockhunt() {
-    blockChoices = Arrays.asList(Material.values());
-    blockChoices = blockChoices.stream().filter(Material::isSolid).collect(Collectors.toList());
-  }
+  private final List<Material> overworldBlocks = OverworldBlocks.blockList;
+  private final List<Material> allBlocks =
+      Arrays.stream(Material.values()).filter(Material::isSolid).collect(Collectors.toList());
 
   @Override
   public void onEnable() {}
@@ -43,14 +41,23 @@ public final class Blockhunt extends JavaPlugin {
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-    if (command.getName().equalsIgnoreCase("blockhunt") && !playing && args.length == 1) {
+    if (!playing && args.length == 1) {
       try {
         rounds = Integer.parseInt(args[0]);
       } catch (NumberFormatException e) {
         return false;
       }
-      playGame();
-      return true;
+      if (command.getName().equalsIgnoreCase("blockhunt")) {
+        blockChoices = allBlocks;
+      } else if (command.getName().equalsIgnoreCase("blockhunt-overworld")) {
+        blockChoices = overworldBlocks;
+      } else {
+        return false;
+      }
+      if (rounds > 0) {
+        playGame();
+        return true;
+      }
     }
     return false;
   }
@@ -83,7 +90,7 @@ public final class Blockhunt extends JavaPlugin {
 
   private void awaitEndOfRound() {
     scheduler.scheduleSyncDelayedTask(
-        this, this::startCountdown, (roundLength(roundNumber) - 6) * 20L);
+        this, this::startCountdown, (roundLength(roundNumber) - 5) * 20L);
   }
 
   private void startCountdown() {
@@ -99,7 +106,7 @@ public final class Blockhunt extends JavaPlugin {
                   player.sendTitle(String.valueOf(timeRemaining), "", 5, 10, 5);
                 }
                 timeRemaining--;
-                if (timeRemaining == 0) {
+                if (timeRemaining == -1) {
                   endRound();
                 }
               }
@@ -135,8 +142,7 @@ public final class Blockhunt extends JavaPlugin {
   }
 
   private static int roundLength(int roundNumber) {
-    return 5;
-    // return 330 - (roundNumber * 30);
+    return max(330 - (roundNumber * 30), 30);
   }
 
   private void generateBlocks() {
@@ -157,12 +163,18 @@ public final class Blockhunt extends JavaPlugin {
   private void showLeaderboard() {
     List<Entry<Player, Integer>> leaderboard = getLeaderboard();
 
-
     for (Player player : players) {
       player.sendMessage("\nLeaderboard:");
       for (int i = 0; i < leaderboard.size(); i++) {
         Entry<Player, Integer> entry = leaderboard.get(i);
-        player.sendMessage("  " + i + ": " + entry.getKey().getDisplayName() + " [" + entry.getValue() + " points]");
+        player.sendMessage(
+            "  "
+                + i
+                + ": "
+                + entry.getKey().getDisplayName()
+                + " ["
+                + entry.getValue()
+                + " points]");
       }
       player.sendMessage("");
     }
@@ -177,5 +189,4 @@ public final class Blockhunt extends JavaPlugin {
 
     playing = false;
   }
-
 }

@@ -8,3 +8,6 @@ commands:
   blockhunt:
     description: play blockhunt!
     usage: /blockhunt <rounds>
+  blockhunt-overworld:
+    description: play blockhunt without needing to enter other dimensions!
+    usage: /blockhunt-overworld <rounds>
