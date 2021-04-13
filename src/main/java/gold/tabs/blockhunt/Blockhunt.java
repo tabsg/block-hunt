@@ -111,7 +111,7 @@ public final class Blockhunt extends JavaPlugin {
     if (roundNumber < rounds) {
       playRound();
     } else {
-      playing = false;
+      gameOver();
     }
   }
 
@@ -129,7 +129,8 @@ public final class Blockhunt extends JavaPlugin {
   }
 
   private static int roundLength(int roundNumber) {
-    return 330 - (roundNumber * 30);
+    return 5;
+    // return 330 - (roundNumber * 30);
   }
 
   private void generateBlocks() {
@@ -141,19 +142,33 @@ public final class Blockhunt extends JavaPlugin {
     }
   }
 
-  private void showLeaderboard() {
+  private List<Entry<Player, Integer>> getLeaderboard() {
     List<Entry<Player, Integer>> scoreList = new ArrayList<>(scores.entrySet());
     scoreList.sort(Entry.comparingByValue());
-    List<Entry<Player, Integer>> leaderboard = scoreList.stream().limit(5).collect(Collectors.toList());
+    return scoreList.stream().limit(5).collect(Collectors.toList());
+  }
+
+  private void showLeaderboard() {
+    List<Entry<Player, Integer>> leaderboard = getLeaderboard();
 
     for (Player player : players) {
       player.sendMessage("\nLeaderboard:");
       for (int i = 0; i < leaderboard.size(); i++) {
         Entry<Player, Integer> entry = leaderboard.get(i);
-        player.sendMessage("  " + i + ": " + entry.getKey().getName() + " [" + entry.getValue() + " points]");
+        player.sendMessage("  " + i + ": " + entry.getKey().getDisplayName() + " [" + entry.getValue() + " points]");
       }
       player.sendMessage("");
     }
+  }
+
+  private void gameOver() {
+    Player winner = getLeaderboard().get(0).getKey();
+
+    for (Player player : players) {
+      player.sendTitle("Game Over", winner.getDisplayName() + " wins!", 10, 100, 10);
+    }
+
+    playing = false;
   }
 
 }
