@@ -21,7 +21,7 @@ public final class Blockhunt extends JavaPlugin {
   private int roundNumber;
   private List<Player> players;
   private final BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-  private Map<Player, Material> playerBlockMap;
+  private final Map<Player, Material> playerBlockMap = new HashMap<>();
   private final Map<Player, Integer> scores = new HashMap<>();
   private int countdownID;
 
@@ -36,7 +36,6 @@ public final class Blockhunt extends JavaPlugin {
 
   @Override
   public void onDisable() {
-    // Plugin shutdown logic
   }
 
   @Override
@@ -74,11 +73,7 @@ public final class Blockhunt extends JavaPlugin {
   private void awaitEndOfRound() {
     scheduler.scheduleSyncDelayedTask(
         this,
-        new Runnable() {
-          public void run() {
-            startCountdown();
-          }
-        },
+        this::startCountdown,
         (roundLength(roundNumber) - 6) * 20L);
   }
 
@@ -101,6 +96,18 @@ public final class Blockhunt extends JavaPlugin {
 
   private void endRound() {
     scheduler.cancelTask(countdownID);
+    checkBlocksBeneathPlayers();
+    showLeaderboard();
+    roundNumber++;
+
+    if (roundNumber < 10) {
+      playRound();
+    } else {
+      playing = false;
+    }
+  }
+
+  private void checkBlocksBeneathPlayers() {
     playerBlockMap.forEach(
         (player, block) -> {
           if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().equals(block)) {
@@ -111,16 +118,6 @@ public final class Blockhunt extends JavaPlugin {
             player.sendMessage("Round unsuccessful, Try harder next time :/");
           }
         });
-
-    showLeaderboard();
-
-    roundNumber++;
-
-    if (roundNumber < 10) {
-      playRound();
-    } else {
-      playing = false;
-    }
   }
 
   private static int roundLength(int roundNumber) {
@@ -129,7 +126,7 @@ public final class Blockhunt extends JavaPlugin {
 
   private Map<Player, Material> generateBlocks() {
     Random random = new Random();
-    playerBlockMap = new HashMap<>();
+    playerBlockMap.clear();
     for (Player player : players) {
       int index = random.nextInt(blockChoices.size());
       playerBlockMap.put(player, blockChoices.get(index));
