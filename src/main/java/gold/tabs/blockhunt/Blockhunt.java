@@ -57,7 +57,7 @@ public final class Blockhunt extends JavaPlugin {
   }
 
   private void playRound() {
-    playerBlockMap = generateBlocks();
+    generateBlocks();
     playerBlockMap.forEach(
         (player, block) -> {
           player.sendTitle(
@@ -124,14 +124,13 @@ public final class Blockhunt extends JavaPlugin {
     return 330 - (roundNumber * 30);
   }
 
-  private Map<Player, Material> generateBlocks() {
+  private void generateBlocks() {
     Random random = new Random();
     playerBlockMap.clear();
     for (Player player : players) {
       int index = random.nextInt(blockChoices.size());
       playerBlockMap.put(player, blockChoices.get(index));
     }
-    return playerBlockMap;
   }
 
   private void showLeaderboard() {
