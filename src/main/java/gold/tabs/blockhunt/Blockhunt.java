@@ -24,6 +24,7 @@ public final class Blockhunt extends JavaPlugin {
   private final Map<Player, Material> playerBlockMap = new HashMap<>();
   private final Map<Player, Integer> scores = new HashMap<>();
   private int countdownID;
+  private int rounds;
 
   public Blockhunt() {
     blockChoices = Arrays.asList(Material.values());
@@ -40,7 +41,12 @@ public final class Blockhunt extends JavaPlugin {
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-    if (command.getName().equalsIgnoreCase("blockhunt") && !playing) {
+    if (command.getName().equalsIgnoreCase("blockhunt") && !playing && args.length == 1) {
+      try {
+        rounds = Integer.parseInt(args[0]);
+      } catch (NumberFormatException e) {
+        return false;
+      }
       playGame();
       return true;
     }
@@ -102,7 +108,7 @@ public final class Blockhunt extends JavaPlugin {
     showLeaderboard();
     roundNumber++;
 
-    if (roundNumber < 10) {
+    if (roundNumber < rounds) {
       playRound();
     } else {
       playing = false;
