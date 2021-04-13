@@ -23,6 +23,7 @@ public final class Blockhunt extends JavaPlugin {
   private final BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
   private Map<Player, Material> playerBlockMap;
   private final Map<Player, Integer> scores = new HashMap<>();
+  private int countdownID;
 
   public Blockhunt() {
     blockChoices = Arrays.asList(Material.values());
@@ -70,22 +71,36 @@ public final class Blockhunt extends JavaPlugin {
     awaitEndOfRound();
   }
 
-  private static int roundLength(int roundNumber) {
-    return 330 - (roundNumber * 30);
-  }
-
   private void awaitEndOfRound() {
     scheduler.scheduleSyncDelayedTask(
         this,
         new Runnable() {
           public void run() {
-            endRound();
+            startCountdown();
           }
         },
-        roundLength(roundNumber) * 20L);
+        (roundLength(roundNumber) - 6) * 20L);
+  }
+
+  private void startCountdown() {
+    countdownID = scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
+      int timeRemaining = 5;
+
+      @Override
+      public void run() {
+        for (Player player : players) {
+          player.sendTitle(String.valueOf(timeRemaining), "", 5, 10, 5);
+        }
+        timeRemaining--;
+        if (timeRemaining == 0) {
+          endRound();
+        }
+      }
+    }, 0L, 20L);
   }
 
   private void endRound() {
+    scheduler.cancelTask(countdownID);
     playerBlockMap.forEach(
         (player, block) -> {
           if (player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().equals(block)) {
@@ -106,6 +121,10 @@ public final class Blockhunt extends JavaPlugin {
     } else {
       playing = false;
     }
+  }
+
+  private static int roundLength(int roundNumber) {
+    return 330 - (roundNumber * 30);
   }
 
   private Map<Player, Material> generateBlocks() {
@@ -132,4 +151,5 @@ public final class Blockhunt extends JavaPlugin {
       player.sendMessage("");
     }
   }
+
 }
