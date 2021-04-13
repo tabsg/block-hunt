@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
+import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -59,7 +60,7 @@ public final class Blockhunt extends JavaPlugin {
     playerBlockMap.forEach(
         (player, block) -> {
           player.sendTitle(
-              block.toString().replace("_", " ").toLowerCase(),
+              WordUtils.capitalizeFully(block.toString().replace("_", " ").toLowerCase()),
               "You have " + roundLength(roundNumber) + " seconds to stand on your block!",
               10,
               100,
