@@ -59,7 +59,7 @@ public final class Blockhunt extends JavaPlugin {
     playerBlockMap.forEach(
         (player, block) -> {
           player.sendTitle(
-              block.name(),
+              block.toString().replace("_", " ").toLowerCase(),
               "You have " + roundLength(roundNumber) + " seconds to stand on your block!",
               10,
               100,
@@ -69,7 +69,7 @@ public final class Blockhunt extends JavaPlugin {
   }
 
   private static int roundLength(int roundNumber) {
-      return 330 - (roundNumber * 30);
+    return 330 - (roundNumber * 30);
   }
 
   private void endTimer(Map<Player, Material> playerBlockMap, int roundNumber) {
