@@ -1,5 +1,7 @@
 package gold.tabs.blockhunt;
 
+import static gold.tabs.blockhunt.OverworldBlocks.*;
+
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -24,6 +26,7 @@ public final class Blockhunt extends JavaPlugin {
   private final Map<Player, Material> playerBlockMap = new HashMap<>();
   private final Map<Player, Integer> scores = new HashMap<>();
   private int countdownID;
+  private final List<Material> overworldBlocks = OverworldBlocks.blockList;
 
   public Blockhunt() {
     blockChoices = Arrays.asList(Material.values());
@@ -31,12 +34,10 @@ public final class Blockhunt extends JavaPlugin {
   }
 
   @Override
-  public void onEnable() {
-  }
+  public void onEnable() {}
 
   @Override
-  public void onDisable() {
-  }
+  public void onDisable() {}
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -60,7 +61,8 @@ public final class Blockhunt extends JavaPlugin {
     generateBlocks();
     playerBlockMap.forEach(
         (player, block) -> {
-          String blockName = WordUtils.capitalizeFully(block.toString().replace("_", " ").toLowerCase());
+          String blockName =
+              WordUtils.capitalizeFully(block.toString().replace("_", " ").toLowerCase());
           player.sendTitle(
               blockName,
               "You have " + roundLength(roundNumber) + " seconds to stand on your block!",
@@ -74,26 +76,29 @@ public final class Blockhunt extends JavaPlugin {
 
   private void awaitEndOfRound() {
     scheduler.scheduleSyncDelayedTask(
-        this,
-        this::startCountdown,
-        (roundLength(roundNumber) - 6) * 20L);
+        this, this::startCountdown, (roundLength(roundNumber) - 6) * 20L);
   }
 
   private void startCountdown() {
-    countdownID = scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
-      int timeRemaining = 5;
+    countdownID =
+        scheduler.scheduleSyncRepeatingTask(
+            this,
+            new Runnable() {
+              int timeRemaining = 5;
 
-      @Override
-      public void run() {
-        for (Player player : players) {
-          player.sendTitle(String.valueOf(timeRemaining), "", 5, 10, 5);
-        }
-        timeRemaining--;
-        if (timeRemaining == 0) {
-          endRound();
-        }
-      }
-    }, 0L, 20L);
+              @Override
+              public void run() {
+                for (Player player : players) {
+                  player.sendTitle(String.valueOf(timeRemaining), "", 5, 10, 5);
+                }
+                timeRemaining--;
+                if (timeRemaining == 0) {
+                  endRound();
+                }
+              }
+            },
+            0L,
+            20L);
   }
 
   private void endRound() {
@@ -138,16 +143,17 @@ public final class Blockhunt extends JavaPlugin {
   private void showLeaderboard() {
     List<Entry<Player, Integer>> scoreList = new ArrayList<>(scores.entrySet());
     scoreList.sort(Entry.comparingByValue());
-    List<Entry<Player, Integer>> leaderboard = scoreList.stream().limit(5).collect(Collectors.toList());
+    List<Entry<Player, Integer>> leaderboard =
+        scoreList.stream().limit(5).collect(Collectors.toList());
 
     for (Player player : players) {
       player.sendMessage("\nLeaderboard:");
       for (int i = 0; i < leaderboard.size(); i++) {
         Entry<Player, Integer> entry = leaderboard.get(i);
-        player.sendMessage("  " + i + ": " + entry.getKey().getName() + " [" + entry.getValue() + " points]");
+        player.sendMessage(
+            "  " + i + ": " + entry.getKey().getName() + " [" + entry.getValue() + " points]");
       }
       player.sendMessage("");
     }
   }
-
 }
