@@ -7,4 +7,4 @@ description: A game where you have to hunt for blocks
 commands:
   blockhunt:
     description: play blockhunt!
-    usage: /blockhunt
+    usage: /blockhunt <rounds>
